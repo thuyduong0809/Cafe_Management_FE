@@ -1,43 +1,60 @@
 import { Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
+import Dashboard from "./components/DashBoard";
 import MainLayout from "./layout/MainLayout";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import { AuthProvider } from "./AuthContext";
+import ProductList from "./pages/products/Productlist";
+import OrderPage from "./pages/orders/OrderPage";
+import EmployeeList from "./pages/employees/EmployeeList";
+import SalesStatistic from "./pages/statistics/SalesStatistic";
+import AccountPage from "./pages/account/AccountPage";
+import CustomerPage from "./pages/customer/CustomerPage";
+import CategoryPage from "./pages/category/CategoryPage";
 
 export default function App() {
   return (
     <AuthProvider>
       <Routes>
+        {/* Route cho trang Login */}
         <Route path="/login" element={<Login />} />
+
+        {/* Route cho các trang cần bảo vệ */}
         <Route
-          path="/unauthorized"
-          element={<div>Không có quyền truy cập</div>}
-        />
+          path="/"
+          element={
+            <ProtectedRoute>
+              <MainLayout />
+            </ProtectedRoute>
+          }
+        >
+          {/* Các route con trong MainLayout */}
+          <Route index element={<Dashboard />} />
+          <Route path="products" element={<ProductList />} />
+          <Route path="orders" element={<OrderPage />} />
 
-        {/* Route bảo vệ cho toàn bộ hệ thống đã đăng nhập */}
-        <Route element={<ProtectedRoute />}>
-          <Route element={<MainLayout />}>
-            <Route index element={<Dashboard />} />
-            <Route path="products" element={<div>Trang sản phẩm</div>} />
-            <Route path="orders" element={<div>Trang hóa đơn</div>} />
-            <Route
-              path="account"
-              element={<div>Trang thông tin tài khoản</div>}
-            />
+          {/* Route cho ADMIN */}
+          <Route
+            path="employees"
+            element={
+              <ProtectedRoute requiredRole="ADMIN">
+                <EmployeeList />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="statistics"
+            element={
+              <ProtectedRoute requiredRole="ADMIN">
+                <SalesStatistic />
+              </ProtectedRoute>
+            }
+          />
 
-            {/* Chỉ ADMIN được vào */}
-            <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
-              <Route
-                path="employees"
-                element={<div>Trang danh sách nhân viên</div>}
-              />
-              <Route
-                path="statistics"
-                element={<div>Trang thống kê doanh thu</div>}
-              />
-            </Route>
-          </Route>
+          {/* Các route không phân biệt vai trò */}
+          <Route path="account" element={<AccountPage />} />
+          <Route path="customers" element={<CustomerPage />} />
+          <Route path="categories" element={<CategoryPage />} />
         </Route>
       </Routes>
     </AuthProvider>

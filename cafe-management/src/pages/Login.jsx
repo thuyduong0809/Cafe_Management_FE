@@ -60,7 +60,7 @@ export default function Login() {
       );
 
       message.success("Đăng nhập thành công!");
-      navigate("/");
+      navigate("/dashboard");
     } catch (error) {
       console.error("Lỗi khi đăng nhập:", error.message);
       message.error("Đăng nhập thất bại! Kiểm tra tài khoản và mật khẩu.");

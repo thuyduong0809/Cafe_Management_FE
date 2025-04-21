@@ -3,58 +3,55 @@ import { jwtDecode } from "jwt-decode";
 
 const AuthContext = createContext();
 
-export const AuthProvider = ({ children }) => {
-  const [role, setRole] = useState(() => {
-    const token = sessionStorage.getItem("accessToken");
-    if (token) {
-      try {
-        const decoded = jwtDecode(token);
-        // console.log(decoded)
-        return decoded.scope || null;
-      } catch (e) {
-        return null;
-      }
+const decodeToken = (token) => {
+  try {
+    const decoded = jwtDecode(token);
+    if (decoded.exp && decoded.exp < Date.now() / 1000) {
+      console.warn("Token đã hết hạn.");
+      return { role: null, employeeId: null };
     }
-    return null;
-  });
+    return {
+      role: decoded.scope || null,
+      employeeId: decoded.employeeId || null,
+    };
+  } catch (e) {
+    console.warn("Không thể giải mã token:", e);
+    return { role: null, employeeId: null };
+  }
+};
 
+export const AuthProvider = ({ children }) => {
   const [accessToken, setAccessToken] = useState(
     () => sessionStorage.getItem("accessToken") || null
   );
+  const [role, setRole] = useState(null);
   const [employeeId, setEmployeeId] = useState(null);
 
-  // Hàm đăng xuất
   const logout = () => {
-    console.log("Gọi logout, chuyển về trang login...");
     setRole(null);
+    setEmployeeId(null);
     sessionStorage.removeItem("accessToken");
-    sessionStorage.removeItem("role");
     window.location.href = "/";
-  };
-
-  const setUserInfo = async () => {
-    if (!accessToken) return;
-
-    try {
-      const decoded = jwtDecode(accessToken);
-      console.log(decoded);
-      setRole(decoded.scope || null);
-      setEmployeeId(decoded.employeeId);
-    } catch (error) {
-      console.warn("Không thể giải mã token:", error);
-      logout();
-    }
   };
 
   useEffect(() => {
     if (accessToken) {
-      setUserInfo();
+      const { role, employeeId } = decodeToken(accessToken);
+      setRole(role);
+      setEmployeeId(employeeId);
     }
   }, [accessToken]);
 
   return (
     <AuthContext.Provider
-      value={{ role, accessToken, setAccessToken, logout, employeeId }}
+      value={{
+        role,
+        accessToken,
+        setAccessToken,
+        logout,
+        employeeId,
+        setEmployeeId,
+      }}
     >
       {children}
     </AuthContext.Provider>
