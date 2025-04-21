@@ -1,38 +1,41 @@
-import { useEffect, useState } from "react";
-import { Table, Button, Popconfirm, message } from "antd";
-import axios from "axios";
+import React, { useEffect, useState } from "react";
+import {
+  Button,
+  Input,
+  Table,
+  Space,
+  message,
+  Row,
+  Col,
+  Card,
+  Typography,
+} from "antd";
 import { useNavigate } from "react-router-dom";
+import {
+  ArrowLeftOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  PlusOutlined,
+} from "@ant-design/icons";
+import api from "../../utils/api";
+
+const { Title, Text } = Typography;
 
 const EmployeeList = () => {
   const [employees, setEmployees] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+  const [currentEmployee, setCurrentEmployee] = useState(null);
   const navigate = useNavigate();
 
   const fetchEmployees = async () => {
     try {
-      const res = await axios.get(
-        "http://localhost:8081/myapp/api/business/employee",
-        {
-          withCredentials: true,
-        }
-      );
-      setEmployees(res.data);
+      const res = await api.get("/business/employee");
+      const filtered = res.data.filter((emp) => emp.empRole !== "");
+      setEmployees(filtered);
     } catch (err) {
-      message.error("Không thể tải danh sách nhân viên");
-    }
-  };
-
-  const handleDelete = async (id) => {
-    try {
-      await axios.delete(
-        `http://localhost:8081/myapp/api/business/employee/${id}`,
-        {
-          withCredentials: true,
-        }
-      );
-      message.success("Đã xóa nhân viên");
-      fetchEmployees();
-    } catch (err) {
-      message.error("Xóa thất bại");
+      message.error("Lỗi khi tải danh sách nhân viên");
+      console.error(err);
     }
   };
 
@@ -40,47 +43,133 @@ const EmployeeList = () => {
     fetchEmployees();
   }, []);
 
+  const handleDelete = async () => {
+    if (!currentEmployee) return;
+    const confirm = window.confirm("Bạn có chắc chắn muốn xoá nhân viên này?");
+    if (!confirm) return;
+
+    try {
+      await api.delete(`/business/employee/${currentEmployee.empId}`);
+      message.success("Xoá nhân viên thành công");
+      setCurrentEmployee(null);
+      setSelectedRowKeys([]);
+      fetchEmployees();
+    } catch (err) {
+      message.error("Không thể xoá nhân viên");
+    }
+  };
+
+  const handleEdit = () => {
+    if (currentEmployee) {
+      navigate(`/editemployees/${currentEmployee.empId}`);
+    }
+  };
+
+  const handleAdd = () => {
+    navigate("/addemployees");
+  };
+
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const filteredEmployees = employees.filter((emp) =>
+    emp.empName.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   const columns = [
-    { title: "ID", dataIndex: "id", key: "id" },
-    { title: "Tên", dataIndex: "name", key: "name" },
-    { title: "Tài khoản", dataIndex: "account", key: "account" },
-    { title: "Vai trò", dataIndex: "role", key: "role" },
+    { title: "Mã", dataIndex: "empId", key: "empId" },
+    { title: "Tên", dataIndex: "empName", key: "empName" },
+    { title: "Năm sinh", dataIndex: "empYearOfBirth", key: "empYearOfBirth" },
+    { title: "Điện thoại", dataIndex: "empPhone", key: "empPhone" },
     {
-      title: "Hành động",
-      key: "action",
-      render: (_, record) => (
-        <>
-          <Button
-            type="link"
-            onClick={() => navigate(`/sua-nhan-vien/${record.id}`)}
-          >
-            Sửa
-          </Button>
-          <Popconfirm
-            title="Xóa nhân viên?"
-            onConfirm={() => handleDelete(record.id)}
-          >
-            <Button danger type="link">
-              Xóa
-            </Button>
-          </Popconfirm>
-        </>
-      ),
+      title: "Chức vụ",
+      dataIndex: "empRole",
+      key: "empRole",
+      render: (role) => (role === "ADMIN" ? "Quản lý" : "Nhân viên"),
     },
   ];
 
+  const rowSelection = {
+    type: "radio",
+    selectedRowKeys,
+    onChange: (keys, selectedRows) => {
+      setSelectedRowKeys(keys);
+      setCurrentEmployee(selectedRows[0]);
+    },
+  };
+
   return (
-    <div>
-      <h2>Danh sách nhân viên</h2>
-      <Button type="primary" onClick={() => navigate("/them-nhan-vien")}>
-        Thêm nhân viên
-      </Button>
-      <Table
-        columns={columns}
-        dataSource={employees}
-        rowKey="id"
-        style={{ marginTop: 20 }}
-      />
+    <div style={{ padding: "24px" }}>
+      <Space direction="vertical" style={{ width: "100%" }} size="large">
+        <Button
+          type="link"
+          icon={<ArrowLeftOutlined />}
+          onClick={() => navigate(-1)}
+        >
+          Quay lại
+        </Button>
+
+        <Title level={3}>Danh sách nhân viên</Title>
+
+        <Row gutter={16}>
+          <Col span={8}>
+            <Card>
+              <Text strong>Tổng số nhân viên: </Text>
+              {employees.filter((emp) => emp.empRole === "USER").length}
+            </Card>
+          </Col>
+          <Col span={8}>
+            <Card>
+              <Text strong>Tổng số quản lý: </Text>
+              {employees.filter((emp) => emp.empRole === "ADMIN").length}
+            </Card>
+          </Col>
+          <Col span={8}>
+            <Input
+              placeholder="🔍 Tìm kiếm theo tên"
+              value={searchTerm}
+              onChange={handleSearch}
+              allowClear
+            />
+          </Col>
+        </Row>
+
+        <Table
+          rowKey="empId"
+          rowSelection={rowSelection}
+          columns={columns}
+          dataSource={filteredEmployees}
+          pagination={{ pageSize: 8 }}
+        />
+
+        <Space>
+          <Button
+            icon={<DeleteOutlined />}
+            danger
+            disabled={!currentEmployee}
+            onClick={handleDelete}
+          >
+            Xoá
+          </Button>
+          <Button
+            icon={<EditOutlined />}
+            disabled={!currentEmployee}
+            onClick={handleEdit}
+            type="primary"
+          >
+            Chỉnh sửa
+          </Button>
+          <Button
+            icon={<PlusOutlined />}
+            onClick={handleAdd}
+            type="default"
+            style={{ background: "#52c41a", color: "white" }}
+          >
+            Thêm Nhân Viên
+          </Button>
+        </Space>
+      </Space>
     </div>
   );
 };

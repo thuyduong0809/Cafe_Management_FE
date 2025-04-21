@@ -46,9 +46,8 @@ export default function Login() {
       }
 
       const data = await res.json();
-      console.log("token: ", data);
+      console.log("Token response:", data);
 
-      sessionStorage.setItem("accessToken", data.token);
       setAccessToken(data.token);
 
       dispatch(

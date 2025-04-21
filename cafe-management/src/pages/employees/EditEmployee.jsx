@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Form, Input, Button, Select, message } from "antd";
-import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
+import api from "../../utils/api";
 
 const EditEmployee = () => {
   const { empId } = useParams();
@@ -11,29 +11,26 @@ const EditEmployee = () => {
   useEffect(() => {
     const fetchEmployee = async () => {
       try {
-        const res = await axios.get(
-          `http://localhost:8081/myapp/api/business/employee/${empId}`,
-          {
-            withCredentials: true,
-          }
-        );
+        const res = await api.get(`/business/employee/${empId}`);
         form.setFieldsValue(res.data);
       } catch (err) {
         message.error("Không thể tải dữ liệu");
       }
     };
     fetchEmployee();
-  }, [empId]);
+  }, [empId, form]);
 
   const handleFinish = async (values) => {
     try {
-      await axios.put(
-        `http://localhost:8081/myapp/api/business/employee/${empId}`,
-        values,
-        {
-          withCredentials: true,
-        }
-      );
+      const data = {
+        empName: values.empName,
+        empYearOfBirth: parseInt(values.empYearOfBirth),
+        empPhone: values.empPhone,
+        empRole: values.empRole,
+        empAccount: values.empAccount, // giữ nguyên
+        // Không sửa mật khẩu ở đây
+      };
+      await api.put(`/business/employee/${empId}`, data);
       message.success("Cập nhật thành công");
       navigate("/employees");
     } catch (err) {
@@ -46,20 +43,34 @@ const EditEmployee = () => {
       <h2>Sửa nhân viên</h2>
       <Form form={form} layout="vertical" onFinish={handleFinish}>
         <Form.Item
-          name="name"
+          name="empName"
           label="Tên nhân viên"
           rules={[{ required: true }]}
         >
           <Input />
         </Form.Item>
         <Form.Item
-          name="account"
+          name="empYearOfBirth"
+          label="Năm sinh"
+          rules={[{ required: true }]}
+        >
+          <Input type="number" />
+        </Form.Item>
+        <Form.Item
+          name="empPhone"
+          label="Số điện thoại"
+          rules={[{ required: true }]}
+        >
+          <Input />
+        </Form.Item>
+        <Form.Item
+          name="empAccount"
           label="Tài khoản"
           rules={[{ required: true }]}
         >
           <Input disabled />
         </Form.Item>
-        <Form.Item name="role" label="Vai trò" rules={[{ required: true }]}>
+        <Form.Item name="empRole" label="Vai trò" rules={[{ required: true }]}>
           <Select>
             <Select.Option value="ADMIN">Admin</Select.Option>
             <Select.Option value="EMPLOYEE">Nhân viên</Select.Option>

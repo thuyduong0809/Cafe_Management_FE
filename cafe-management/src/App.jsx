@@ -11,6 +11,8 @@ import SalesStatistic from "./pages/statistics/SalesStatistic";
 import AccountPage from "./pages/account/AccountPage";
 import CustomerPage from "./pages/customer/CustomerPage";
 import CategoryPage from "./pages/category/CategoryPage";
+import EditEmployee from "./pages/employees/EditEmployee";
+import AddEmployee from "./pages/employees/AddEmployee";
 
 export default function App() {
   return (
@@ -29,23 +31,20 @@ export default function App() {
           }
         >
           {/* Các route con trong MainLayout */}
-          <Route index element={<Dashboard />} />
+          <Route path="dashboard" index element={<Dashboard />} />
           <Route path="products" element={<ProductList />} />
           <Route path="orders" element={<OrderPage />} />
 
           {/* Route cho ADMIN */}
-          <Route
-            path="employees"
-            element={
-              <ProtectedRoute requiredRole="ADMIN">
-                <EmployeeList />
-              </ProtectedRoute>
-            }
-          />
+          <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
+            <Route path="/employees" element={<EmployeeList />} />
+            <Route path="/editemployees/:id" element={<EditEmployee />} />
+            <Route path="/addemployees" element={<AddEmployee />} />
+          </Route>
           <Route
             path="statistics"
             element={
-              <ProtectedRoute requiredRole="ADMIN">
+              <ProtectedRoute allowedRoles={["ADMIN"]}>
                 <SalesStatistic />
               </ProtectedRoute>
             }
