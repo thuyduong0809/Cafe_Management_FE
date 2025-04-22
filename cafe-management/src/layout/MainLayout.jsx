@@ -27,7 +27,7 @@ const MainLayout = () => {
   const menuItems = [
     {
       key: "dashboard",
-      label: <Link to="/">Trang chủ</Link>,
+      label: <Link to="/orders">Trang chủ</Link>,
       icon: <HomeOutlined />,
     },
     {
@@ -44,13 +44,11 @@ const MainLayout = () => {
       key: "employees",
       label: <Link to="/employees">Nhân viên</Link>,
       icon: <TeamOutlined />,
-      roles: ["ADMIN"],
     },
     {
       key: "statistics",
       label: <Link to="/statistics">Thống kê</Link>,
       icon: <DollarOutlined />,
-      roles: ["ADMIN"],
     },
   ];
 
@@ -104,7 +102,7 @@ const MainLayout = () => {
         >
           <Dropdown overlay={userMenu} trigger={["click"]}>
             <span style={{ cursor: "pointer" }}>
-              <Avatar icon={<UserOutlined />} /> {user?.fullName}
+              <Avatar icon={<UserOutlined />} /> {user?.username}{" "}
             </span>
           </Dropdown>
         </Header>

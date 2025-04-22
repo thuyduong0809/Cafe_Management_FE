@@ -12,7 +12,13 @@ const EditEmployee = () => {
     const fetchEmployee = async () => {
       try {
         const res = await api.get(`/business/employee/${empId}`);
-        form.setFieldsValue(res.data);
+        form.setFieldsValue({
+          empAccount: res.data.empAccount,
+          empName: res.data.empName,
+          empYearOfBirth: res.data.empYearOfBirth,
+          empPhone: res.data.empPhone,
+          empRole: res.data.empRole,
+        });
       } catch (err) {
         message.error("Không thể tải dữ liệu");
       }
@@ -23,13 +29,11 @@ const EditEmployee = () => {
   const handleFinish = async (values) => {
     try {
       const data = {
-        empName: values.empName,
-        empYearOfBirth: parseInt(values.empYearOfBirth),
+        empAccount: values.empAccount, // Đảm bảo chỉ gửi tài khoản, số điện thoại, và mật khẩu
         empPhone: values.empPhone,
-        empRole: values.empRole,
-        empAccount: values.empAccount, // giữ nguyên
-        // Không sửa mật khẩu ở đây
+        empPassword: values.empPassword,
       };
+
       await api.put(`/business/employee/${empId}`, data);
       message.success("Cập nhật thành công");
       navigate("/employees");
@@ -38,24 +42,34 @@ const EditEmployee = () => {
     }
   };
 
+  const handleGoBack = () => {
+    navigate("/employees");
+  };
+
   return (
     <div>
       <h2>Sửa nhân viên</h2>
       <Form form={form} layout="vertical" onFinish={handleFinish}>
+        {/* Tài khoản vẫn hiển thị nhưng không thể chỉnh sửa */}
         <Form.Item
-          name="empName"
-          label="Tên nhân viên"
+          name="empAccount"
+          label="Tài khoản"
           rules={[{ required: true }]}
         >
           <Input />
         </Form.Item>
-        <Form.Item
-          name="empYearOfBirth"
-          label="Năm sinh"
-          rules={[{ required: true }]}
-        >
-          <Input type="number" />
+
+        {/* Tên nhân viên vẫn hiển thị nhưng không thể chỉnh sửa */}
+        <Form.Item name="empName" label="Tên nhân viên">
+          <Input disabled />
         </Form.Item>
+
+        {/* Năm sinh vẫn hiển thị nhưng không thể chỉnh sửa */}
+        <Form.Item name="empYearOfBirth" label="Năm sinh">
+          <Input disabled />
+        </Form.Item>
+
+        {/* Số điện thoại có thể chỉnh sửa */}
         <Form.Item
           name="empPhone"
           label="Số điện thoại"
@@ -63,21 +77,29 @@ const EditEmployee = () => {
         >
           <Input />
         </Form.Item>
-        <Form.Item
-          name="empAccount"
-          label="Tài khoản"
-          rules={[{ required: true }]}
-        >
-          <Input disabled />
-        </Form.Item>
-        <Form.Item name="empRole" label="Vai trò" rules={[{ required: true }]}>
-          <Select>
+
+        {/* Vai trò vẫn hiển thị nhưng không thể chỉnh sửa */}
+        <Form.Item name="empRole" label="Vai trò">
+          <Select disabled>
             <Select.Option value="ADMIN">Admin</Select.Option>
             <Select.Option value="EMPLOYEE">Nhân viên</Select.Option>
           </Select>
         </Form.Item>
+
+        {/* Mật khẩu có thể chỉnh sửa */}
+        <Form.Item name="empPassword" label="Mật khẩu">
+          <Input.Password />
+        </Form.Item>
+
         <Button type="primary" htmlType="submit">
           Cập nhật
+        </Button>
+        <Button
+          type="default"
+          onClick={handleGoBack}
+          style={{ marginLeft: 10 }}
+        >
+          Quay lại
         </Button>
       </Form>
     </div>

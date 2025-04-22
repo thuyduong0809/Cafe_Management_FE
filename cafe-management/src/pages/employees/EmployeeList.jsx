@@ -105,7 +105,7 @@ const EmployeeList = () => {
         <Button
           type="link"
           icon={<ArrowLeftOutlined />}
-          onClick={() => navigate(-1)}
+          onClick={() => navigate("/orders")}
         >
           Quay lại
         </Button>

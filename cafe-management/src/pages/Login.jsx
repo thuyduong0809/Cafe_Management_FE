@@ -11,8 +11,6 @@ import {
   Typography,
   Image,
 } from "antd";
-import { useDispatch } from "react-redux";
-import { loginSuccess } from "../features/auth/authSlice";
 import { useAuth } from "../AuthContext";
 
 const { Title } = Typography;
@@ -21,7 +19,6 @@ export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
-  const dispatch = useDispatch();
   const { setAccessToken } = useAuth();
 
   const handleLogin = async () => {
@@ -48,18 +45,14 @@ export default function Login() {
       const data = await res.json();
       console.log("Token response:", data);
 
+      sessionStorage.removeItem("accessToken");
+
+      sessionStorage.setItem("accessToken", data.token);
+
       setAccessToken(data.token);
 
-      dispatch(
-        loginSuccess({
-          user: data.employee,
-          accessToken: data.token,
-          role: data.role,
-        })
-      );
-
       message.success("Đăng nhập thành công!");
-      navigate("/dashboard");
+      navigate("/orders");
     } catch (error) {
       console.error("Lỗi khi đăng nhập:", error.message);
       message.error("Đăng nhập thất bại! Kiểm tra tài khoản và mật khẩu.");

@@ -7,6 +7,9 @@ const AddEmployee = () => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
   const { accessToken } = useAuth();
+  const handleGoBack = () => {
+    navigate("/employees");
+  };
 
   const handleFinish = async (values) => {
     try {
@@ -79,6 +82,13 @@ const AddEmployee = () => {
         </Form.Item>
         <Button type="primary" htmlType="submit">
           Thêm
+        </Button>
+        <Button
+          type="default"
+          onClick={handleGoBack}
+          style={{ marginLeft: 10 }}
+        >
+          Quay lại
         </Button>
       </Form>
     </div>

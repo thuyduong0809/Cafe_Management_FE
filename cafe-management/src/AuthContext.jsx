@@ -6,10 +6,6 @@ const AuthContext = createContext();
 const decodeToken = (token) => {
   try {
     const decoded = jwtDecode(token);
-    if (decoded.exp && decoded.exp < Date.now() / 1000) {
-      console.warn("Token đã hết hạn.");
-      return { role: null, employeeId: null };
-    }
     return {
       role: decoded.scope || null,
       employeeId: decoded.employeeId || null,
@@ -30,8 +26,9 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setRole(null);
     setEmployeeId(null);
+    setAccessToken(null);
     sessionStorage.removeItem("accessToken");
-    window.location.href = "/";
+    window.location.href = "/login";
   };
 
   useEffect(() => {
